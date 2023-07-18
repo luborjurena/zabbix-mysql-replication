@@ -1,0 +1,41 @@
+zabbix_export:
+  version: '6.0'
+  date: '2023-07-18T11:23:24Z'
+  groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: eb2dd2b44f8d43869d095c4d55939663
+      template: 'Template MySQL Replication'
+      name: 'Template MySQL Replication'
+      groups:
+        - name: Templates
+      items:
+        - uuid: fc97436d59ec47c1aeac818b5b4455c6
+          name: 'MySQL Seconds behind master'
+          key: mysql.seconds_behind_master
+          triggers:
+            - uuid: fd237fddd0ab4e93b31d132bcabe5392
+              expression: 'avg(/Template MySQL Replication/mysql.seconds_behind_master,5m)>0'
+              name: '{HOST.NAME}: MySQL replication is delayed'
+              priority: WARNING
+        - uuid: 37d2e46f4c6f4ea7b34e9fc2e42b1720
+          name: 'MySQL Slaves Connected'
+          key: mysql.slaves_connected
+          triggers:
+            - uuid: 632da065abbc4e79857b59db86341687
+              expression: 'last(/Template MySQL Replication/mysql.slaves_connected,#1)<>last(/Template MySQL Replication/mysql.slaves_connected,#2)'
+              name: '{HOST.NAME}: Number of connected MySQL slaves changed'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 3d0ca383c9284055ada5a53f7c8b40ee
+          name: 'MySQL Slave IO Running'
+          key: mysql.slave_io_running
+        - uuid: e41c531119fe440fb4cb4e894943d364
+          name: 'MySQL Slave SQL Running'
+          key: mysql.slave_sql_running
+  triggers:
+    - uuid: 39e789ab739a4e7da578a223259be5ff
+      expression: 'last(/Template MySQL Replication/mysql.slave_io_running)>0 or last(/Template MySQL Replication/mysql.slave_sql_running)>0'
+      name: '{HOST.NAME}: MySQL Replication is not running'
+      priority: AVERAGE
